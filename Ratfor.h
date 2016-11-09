@@ -23,7 +23,7 @@
 #define NOT '!'
 #define MAXARRAY 1024
 #define MAXSET   1024
-
+#define ESC '\@'  //escape char is @n is new line, can change if needed
 //Forward declerations
 int tabpos(int col, int *tabs);
 void settabs(int *tabs);
