@@ -6,7 +6,7 @@
 
 int main(int argc, char* argv[])
 {
-	FILE *testFile;
+	/*FILE *testFile;
 	testFile = fopen("test2.txt", "r");
 	if (!testFile) {
 		perror("File opening failed");
@@ -75,7 +75,17 @@ int main(int argc, char* argv[])
 	fclose(unCompress);
 
 	char testString[] = "MonkeyWentToIbiza";
-	printf("%s W location is %i", testString, indexOf('W', testString));
+	printf("%s W location is %i", testString, index('W', testString));
+	*/
+
+	//char input[] = "a-z A-Z";
+	//char *token = strtok(input, " ");
+	//while (token) {
+	//	puts(token);
+	//	token = strtok(NULL, " ");
+	//}
+	char testString[] = "!a-z 0-9";
+	char* trans = translit(testString);
 
 	return EXIT_SUCCESS;
 }
