@@ -449,7 +449,13 @@ int addset(char c, char set[], int j, int maxsize) {
 }
 
 
-//
+/*
+  getarg, return's EOF if no argument to return. Modifies data[]
+    argc - argument to return in data
+	arg[] - array of arguments
+	data[] - argument to return
+	maxsize - array max size
+*/
 int getarg(int argc, char arg[], char data[], int maxsize ) {
 	/*
 	 normally 
@@ -457,21 +463,25 @@ int getarg(int argc, char arg[], char data[], int maxsize ) {
 	*/
 	int indexList[MAXARRAY];
 
+	//if the line is empty or null
 	if (arg[0] == '\n' | arg[0] == '\0') {
 		return EOF;
 	}
 
 
-	//first index
+	//find first index of space
 	indexList[0] = index(' ', arg);
 
+	//find the rest of the index's
 	for (int i = 0; i < maxsize; i++) {
 		indexList[i] = index(' ', (char*)arg[indexList[i]]);
 	}
 
-	//copy from arg[indexlist[argc - 1] to
+	//copy from arg[indexlist[argc - 1] to ....
+	int count = indexList[argc] - indexList[argc - 1];
+	strncpy(data, (char*)arg[indexList[argc - 1]], count);
 
-	return 1;
+	return YES;
 }
 
 
@@ -479,6 +489,53 @@ int getarg(int argc, char arg[], char data[], int maxsize ) {
  translit from to, returns *char
  Translit gets a little bit complicated
  We can do this via file streams or via char strings
+ <RATFOR>
+	translit - map characters
+	character getc
+	character arg(MAXARR), c, from(MAXSET), to(MAXSET)
+	integer getarg, length, markset, xindex
+	integer allbut, collap, i, lastto
+
+	if (getarg(1, arg, MAXARR) == EOF)
+		call error("usage:translit from to")
+	else if (arg(1) == NOT){
+		allbut = yes
+		if (markset(arg, 2, from, MAXSET) == NO )
+			call error("From: too large")
+	}
+	else {
+		allbut = NO
+		if( markset(arg, 1, from, MAXSET) == NO )
+			call error("From: to large")
+	}
+
+	if( getarg(2, arg, MAXARR) == EOF )
+		to(1) = EOF
+	else if( markset(arg, 1, to, MAXSET) == NO )
+		call error("TO: too large")
+
+	lastto = length(to)
+	if( length(from) > lastto | allbut == YES )
+		callop = YES
+	else
+		callop = NO
+
+	repeat{
+		i = xindex( from, getc(c), allbut, lastto)
+		if( collap == YES & i >= lastto & lastto > 0 ){ #collapse
+			call putc(to(lastto))
+			repeat{
+				i = xindex( from, getc(c), allbut, lastto)
+			}until( i < lastto)
+		}#end collapse
+		if( c == EOF )
+			break
+		if( i > 0 & lastto > 0)
+			call putc(to(i))
+		else if( i == 0 )
+			call putc(c)
+	}
+ </RATFOR>
 */
 char *translit( char arg[]) {
 
