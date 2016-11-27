@@ -14,22 +14,27 @@
 #define BACKSPACE '\b'
 #define NOSKIP  '+'
 #define SKIP    '-'
+#define ESCAPE 0x1B //esc \e in gcc?
+#define LETN 'n'
+#define LETT 't'
+
 #define YES     1
 #define NO      0
-#define MAXLINE 160	
+#define MAXLINE 160	   //80 char lines gave issues
 #define MAXCHUNK 254   //could be 511, 1023 etc
 #define THRESH 5
 #define RCODE '\b'
 #define NOT '!'
 #define MAXARRAY 1024
 #define MAXSET   1024
+#define MAXARR   1024
 
 //Forward declerations
 int tabpos(int col, int *tabs);
 void settabs(int *tabs);
 int mod(int a, int b);
 int max(int a, int b);
-int addset(char c, char *set, int *j, int maxsize);
+int addset(char c, char set[], int j, int maxsize);
 
 /*
  Chapter One
@@ -331,7 +336,7 @@ int index(char c, char *s) {
 
 	while ((*i != c)) {
 		if (*i == NULL) {
-			return -1;
+			return EOF;
 		}
 		i++;
 	}
@@ -354,42 +359,132 @@ int xindex(char c, char *s, int allbut, int lastto) {
 //Since c already has a length of a string function
 #define length(s) strlen(s)
 
-void filset(char delim, char *s, int i, char *set, int j, int size ) {
+char esc(char s[], int i) {
+	if (s[i] != ESCAPE) {
+		return s[i];
+	}
+	else if (s[i + 1] == EOS) {
+		return ESCAPE;
+	}
+	else {
+		i = i + 1;
+		if (s[i] == LETN) {
+			return NEWLINE;
+		}
+		else if (s[i] == LETT) {
+			return TAB;
+		}
+		else {
+			return s[i];
+		}
+	}
+}
+
+#define DASH '-'
+//modifies j, i
+void dodash(char valid[], char s[], int i, char set[], int j, int size) {
+	//Hope this is contents of, not value of
+	i = i + 1;
+	j = j + 1;
+	int junk;
+
+	int limit = index(esc(s, i), valid);
+	for (int k = index(set[j], valid); k <= limit; k++) {
+		junk = addset(valid[k], set, j, size);
+	}
+
+}
+
+
+void filset(char delim, char s[], int i, char set[], int j, int size ) {
+	int junk;
+
 	char digits[] = "01234567890";
 	char lowalf[] = "abcdefghijklmnopqrstuvwxyz";
 	char upalf[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+	for (; (s[i] != delim) & (s[i] != EOS); i++) {
+		if (s[i] == ESCAPE) {
+			junk = addset(esc(s, i), set, j, size);
+		}
+		else if (s[i] != DASH) {
+			junk = addset(s[i], set, j, size);
+		}
+		else if (j <= 1 | s[i + 1] == EOS) { //Lterall -
+			junk = addset(DASH, set, j, size);
+		}
+		else if (index(s[j - 1], digits) > 0) {
+			dodash(digits, s, i, set, j, size);
+		}
+		else if (index(s[j - 1], lowalf) > 0) {
+			dodash(lowalf, s, i, set, j, size);
+		}
+		else if (index(s[j - 1], upalf) > 0) {
+			dodash(upalf, s, i, set, j, size);
+		}
+		else {
+			junk = addset(DASH, set, j, size);
+		}
+	}
 }
 
-int makset(char *s, int k, char *set, int size){
+int makset(char s[], int k, char set[], int size){
 	int i, j;
 	i = k;
 	j = 1;
 	filset(EOS, s, i, set, j, size);
-	return addset(EOS, set, &j, size);
+	return addset(EOS, set, j, size);
 }
 
 //Can you see how this will get messy!
-int addset(char c, char *set, int *j, int maxsize) {
-	if (*j > maxsize) {
+int addset(char c, char set[], int j, int maxsize) {
+	if (j >= maxsize) {
 		return NO;
 	}
 	else {
-		set[*j] = c;
-		*j = *j + 1;
+		set[j] = c;
+		j = j + 1;
 	}
 	return YES;
 }
+
+
+//
+int getarg(int argc, char arg[], char data[], int maxsize ) {
+	/*
+	 normally 
+	 arg[] = "0-9 n" 
+	*/
+	int indexList[MAXARRAY];
+
+	if (arg[0] == '\n' | arg[0] == '\0') {
+		return EOF;
+	}
+
+
+	//first index
+	indexList[0] = index(' ', arg);
+
+	for (int i = 0; i < maxsize; i++) {
+		indexList[i] = index(' ', (char*)arg[indexList[i]]);
+	}
+
+	//copy from arg[indexlist[argc - 1] to
+
+	return 1;
+}
+
+
 /*
  translit from to, returns *char
  Translit gets a little bit complicated
  We can do this via file streams or via char strings
 */
-char *translit( char *s) {
+char *translit( char arg[]) {
 
-	char *ret = NULL;
-	char* from = NULL;
-
+	char ret[] = "";
+	char from[MAXSET];
+	char to[MAXSET];
 	/*
 	 if char *s = "!A-Z a-z";
 	 there are TWO arguments from getarg(n, array, MAXARRAY)
@@ -397,8 +492,8 @@ char *translit( char *s) {
 	//char s[] = "!w-z 0-9";
 
 	int allbut;
-	puts(s);
-	char *token = strtok(s, " ");
+	puts(arg);
+	char *token = strtok(arg, " ");
 	
 	if (token[0] == NOT) {
 		allbut = YES;
