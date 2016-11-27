@@ -40,12 +40,12 @@ int addset(char c, char set[], int j, int maxsize);
  Chapter One
 */
 void copy(FILE *inFile, FILE *outFile) {
-	
+
 	assert(inFile != NULL);
 	assert(outFile != NULL);
 
 	int c;
-	
+
 	while ((c = fgetc(inFile)) != EOF) {
 		fputc(c, outFile);
 	}
@@ -90,7 +90,7 @@ int wordCount(FILE *inFile) {
 		if ((c == BLANK) | (c == NEWLINE) | (c == TAB)) {
 			inword = NO;
 		}
-		else if( inword == NO)
+		else if (inword == NO)
 		{
 			inword = YES;
 			wc++;
@@ -117,8 +117,8 @@ void deTab(FILE *inFile, FILE *outFile) {
 	int c, col;
 	int tabs[MAXLINE];
 
-	settabs( tabs );
-	
+	settabs(tabs);
+
 	col = 1;
 
 	while ((c = fgetc(inFile)) != EOF) {
@@ -127,7 +127,7 @@ void deTab(FILE *inFile, FILE *outFile) {
 				fputc(BLANK, outFile);
 				//putc(BLANK,stdout);
 				col++;
-			} while ( tabpos(col, tabs) == YES);	
+			} while (tabpos(col, tabs) == YES);
 		}
 		else if (c == NEWLINE) {
 			fputc(NEWLINE, outFile);
@@ -144,7 +144,7 @@ void deTab(FILE *inFile, FILE *outFile) {
 
 int tabpos(int col, int *tabs) {
 	//assert(col > 0);
-	if (col > MAXLINE ) {
+	if (col > MAXLINE) {
 		return (int)YES;
 	}
 
@@ -154,7 +154,7 @@ int tabpos(int col, int *tabs) {
 void settabs(int *tabs) {
 
 	for (int i = 0; i <= MAXLINE - 1; i++) {
-		if (mod(i , 8) == 1) {
+		if (mod(i, 8) == 1) {
 			tabs[i] = (int)YES;
 		}
 		else {
@@ -171,7 +171,7 @@ int mod(int a, int b) {
 Chapter Two
 */
 
-void entab( FILE *inFile, FILE *outFile){
+void entab(FILE *inFile, FILE *outFile) {
 	assert(inFile != NULL);
 	assert(outFile != NULL);
 
@@ -193,7 +193,7 @@ void entab( FILE *inFile, FILE *outFile){
 		for (; col < newcol; col++) {
 			fputc(BLANK, outFile);
 		}
-		
+
 		if (c == EOF) {
 			//break;
 			return;
@@ -229,10 +229,10 @@ void overstrike(FILE *inFile, FILE *outFile) {
 				fputc(BLANK, outFile);
 			}
 		}
-		else if ((col == 1 )& (c != EOF)) {
+		else if ((col == 1)& (c != EOF)) {
 			fputc(SKIP, outFile);
 		}
-		if (c == EOF){
+		if (c == EOF) {
 			return;
 		}
 		if (c == NEWLINE) {
@@ -271,12 +271,12 @@ void compress(FILE *inFile, FILE* outFile) {
 		}
 		if (nrep < THRESH) {
 			for (; nrep > 0; nrep = nrep - 1) {
-				
+
 				buff[nsave] = lastc;
 				nsave++;
 
 				if (nsave > MAXCHUNK - 1) {
-					putbuf(buff, nsave , outFile);
+					putbuf(buff, nsave, outFile);
 					nsave = 0;
 				}
 			}
@@ -326,8 +326,8 @@ void crypt(FILE *inFile, FILE *outFile, char *key) {
 	int c;
 
 	for (int i = 0; GETC(c, inFile) != EOF; i = mod(i, strlen(key) + 1)) {
-		fputc( XOR( c, key[i]), outFile);
-	} 
+		fputc(XOR(c, key[i]), outFile);
+	}
 }
 
 //Not quite the book implementation, this in is sure to return iff the string is null terminated
@@ -343,10 +343,10 @@ int index(char c, char *s) {
 	return  i - s;
 }
 
-int xindex(char c, char *s, int allbut, int lastto) {
+int xindex(char s[], char c, int allbut, int lastto) {
 	if (c == EOF) {
 		return 0;
-	} 
+	}
 	else if (allbut == NO) {
 		return index(c, s);
 	}
@@ -396,7 +396,7 @@ void dodash(char valid[], char s[], int i, char set[], int j, int size) {
 }
 
 
-void filset(char delim, char s[], int i, char set[], int j, int size ) {
+void filset(char delim, char s[], int i, char set[], int j, int size) {
 	int junk;
 
 	char digits[] = "01234567890";
@@ -426,14 +426,15 @@ void filset(char delim, char s[], int i, char set[], int j, int size ) {
 			junk = addset(DASH, set, j, size);
 		}
 	}
+	set[MAXARR - 1] = '\0'; //getting a bit paranoid
 }
 
-int makset(char s[], int k, char set[], int size){
+int makset(char s[], int k, char set[], int size) {
 	int i, j;
 	i = k;
-	j = 1;
-	filset(EOS, s, i, set, j, size);
-	return addset(EOS, set, j, size);
+	j = 0; //1
+	filset(EOS, s, i, set, j++, size);
+	return addset(EOS, set, j, size); //adding the EOS
 }
 
 //Can you see how this will get messy!
@@ -450,38 +451,11 @@ int addset(char c, char set[], int j, int maxsize) {
 
 
 /*
-  getarg, return's EOF if no argument to return. Modifies data[]
-    argc - argument to return in data
-	arg[] - array of arguments
-	data[] - argument to return
-	maxsize - array max size
+ Something in our "lovely" code failed
 */
-int getarg(int argc, char arg[], char data[], int maxsize ) {
-	/*
-	 normally 
-	 arg[] = "0-9 n" 
-	*/
-	int indexList[MAXARRAY];
-
-	//if the line is empty or null
-	if (arg[0] == '\n' | arg[0] == '\0') {
-		return EOF;
-	}
-
-
-	//find first index of space
-	indexList[0] = index(' ', arg);
-
-	//find the rest of the index's
-	for (int i = 0; i < maxsize; i++) {
-		indexList[i] = index(' ', (char*)arg[indexList[i]]);
-	}
-
-	//copy from arg[indexlist[argc - 1] to ....
-	int count = indexList[argc] - indexList[argc - 1];
-	strncpy(data, (char*)arg[indexList[argc - 1]], count);
-
-	return YES;
+void error(char msg[]) {
+	printf(msg);
+	exit(EXIT_FAILURE);
 }
 
 
@@ -537,36 +511,66 @@ int getarg(int argc, char arg[], char data[], int maxsize ) {
 	}
  </RATFOR>
 */
-char *translit( char arg[]) {
-
-	char ret[] = "";
+int translit(char argFrom[], char argTo[], char input[], char output[]) {
+	//translit - map characters
+	//character getc
+	//character arg(MAXARR), c, from(MAXSET), to(MAXSET)
 	char from[MAXSET];
 	char to[MAXSET];
-	/*
-	 if char *s = "!A-Z a-z";
-	 there are TWO arguments from getarg(n, array, MAXARRAY)
-	*/
-	//char s[] = "!w-z 0-9";
+	//integer getarg, length, markset, xindex
+	int length;
+	//integer allbut, collap, i, lastto
+	int allbut, collap, i, lastto;
 
-	int allbut;
-	puts(arg);
-	char *token = strtok(arg, " ");
-	
-	if (token[0] == NOT) {
+	//if (getarg(1, arg, MAXARR) == EOF)
+	//	call error("usage:translit from to")
+	//else if (arg(1) == NOT) {
+	if (argFrom[0] == NOT) {
 		allbut = YES;
-		if ( makset(token + 1, 2, from, MAXSET) == NO) {
-			puts("from: to large");
-			exit(EXIT_FAILURE);
+		if (makset(argFrom, 1, from, MAXSET) == NO) { //"!A"
+			error("From: too large");
 		}
 	}
 	else {
 		allbut = NO;
-		puts(token+1);
+		if (makset(argFrom, 0, from, MAXSET) == NO) //"A"
+			error("From: to large");
 	}
 
-	token = strtok(NULL, " ");
-	puts(token);
+	if (argTo == NULL) {
+		to[0] = EOF;
+	}
+	else if (makset(argTo, 1, to, MAXSET) == NO)
+		error("TO: too large");
 
-	return ret;
+	lastto = length(to);
+	if (length(from) > lastto | allbut == YES)
+		collap = YES;
+	else
+		collap = NO;
+
+	while (1) {
+		//i = xindex(from, getc(input), allbut, lastto);
+		i = xindex(from, *input++, allbut, lastto);
+		if (collap == YES & i >= lastto & lastto > 0) {
+			//#collapse
+			//putc(to[lastto], output);
+			*output++ = to[lastto];
+			do {
+				//i = xindex(from, getc(input), allbut, lastto);
+				i = xindex(from, *input++, allbut, lastto);
+			} while (i < lastto);
+		}//#end collapse
+		if (*input == EOF) //c
+			break;
+		if (i > 0 & lastto > 0)
+			//putc(to[i]);
+			*output++ = to[i];
+		else if (i == 0)
+			//putc(c);
+			*output++ = *input;
+	}
+	output[MAXARR - 1] = '\0'; //truncate some data
+	return YES;
 }
 

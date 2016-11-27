@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
 		perror("File opening failed");
 		return EXIT_FAILURE;
 	}
-	
+
 	FILE *detabfile;
 	detabfile = fopen("detab2.txt", "w+");
 	if (!detabfile) {
@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
 		perror("file opening error");
 		return EXIT_FAILURE;
 	}
-	
+
 	FILE *unCompress = fopen("uncomp.txt", "w+");
 	if (!compressFile) {
 		perror("file opening error");
@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 
 	rewind(detabfile);
 	entab(detabfile, entabfile);
-	
+
 	rewind(detabfile);
 	compress(detabfile, compressFile);
 
@@ -84,8 +84,16 @@ int main(int argc, char* argv[])
 	//	puts(token);
 	//	token = strtok(NULL, " ");
 	//}
-	char testString[] = "!a-z 0-9";
-	char* trans = translit(testString);
+
+	//test, uppercase A to lower case a
+	char testString[] = "AAAAAAAAAAAAAAA";
+	char from[] = "A";
+	char to[] = "a";
+	char output[MAXARRAY];
+
+	translit(from, to, testString, output);
+
+	printf("%s\n%s\n", testString, output);
 
 	return EXIT_SUCCESS;
 }
