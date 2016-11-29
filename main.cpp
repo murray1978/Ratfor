@@ -86,8 +86,8 @@ int main(int argc, char* argv[])
 	//}
 
 	//test, uppercase A to lower case a
-	char testString[] = "AAAAAAAAAAAAAAA";
-	char from[] = "A";
+	char testString[] = "AAAAAAAAAAAAAAAbbbbbbbbCDA";
+	char from[] = "!A";
 	char to[] = "a";
 	char output[MAXARRAY];
 

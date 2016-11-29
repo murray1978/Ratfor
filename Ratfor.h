@@ -29,12 +29,14 @@
 #define MAXSET   1024
 #define MAXARR   1024
 
+#define DASH '-'
+
 //Forward declerations
 int tabpos(int col, int *tabs);
 void settabs(int *tabs);
 int mod(int a, int b);
 int max(int a, int b);
-int addset(char c, char set[], int j, int maxsize);
+//int addset(char c, char set[], int *j, int maxsize);
 
 /*
  Chapter One
@@ -353,7 +355,7 @@ int xindex(char s[], char c, int allbut, int lastto) {
 	else if (index(c, s) > 0) {
 		return 0;
 	}
-	return lastto + 1;
+	return lastto;
 }
 
 //Since c already has a length of a string function
@@ -380,23 +382,34 @@ char esc(char s[], int i) {
 	}
 }
 
-#define DASH '-'
+//Can you see how this will get messy!
+int addset(char c, char set[], int *j, int maxsize) {
+	if (*j >= maxsize) {
+		return NO;
+	}
+	else {
+		set[*j] = c;
+		*j = *j + 1;
+	}
+	return YES;
+}
+
 //modifies j, i
-void dodash(char valid[], char s[], int i, char set[], int j, int size) {
+void dodash(char valid[], char s[], int i, char set[], int *j, int size) {
 	//Hope this is contents of, not value of
 	i = i + 1;
 	j = j + 1;
 	int junk;
 
 	int limit = index(esc(s, i), valid);
-	for (int k = index(set[j], valid); k <= limit; k++) {
+	for (int k = index(set[*j], valid); k <= limit; k++) {
 		junk = addset(valid[k], set, j, size);
 	}
 
 }
 
 
-void filset(char delim, char s[], int i, char set[], int j, int size) {
+void filset(char delim, char s[], int i, char set[], int *j, int size) {
 	int junk;
 
 	char digits[] = "01234567890";
@@ -410,43 +423,39 @@ void filset(char delim, char s[], int i, char set[], int j, int size) {
 		else if (s[i] != DASH) {
 			junk = addset(s[i], set, j, size);
 		}
-		else if (j <= 1 | s[i + 1] == EOS) { //Lterall -
+		else if (*j <= 1 | s[i + 1] == EOS) { //Lterall -
 			junk = addset(DASH, set, j, size);
 		}
-		else if (index(s[j - 1], digits) > 0) {
+		else if (index(s[*j - 1], digits) > 0) {
 			dodash(digits, s, i, set, j, size);
 		}
-		else if (index(s[j - 1], lowalf) > 0) {
+		else if (index(s[*j - 1], lowalf) > 0) {
 			dodash(lowalf, s, i, set, j, size);
 		}
-		else if (index(s[j - 1], upalf) > 0) {
+		else if (index(s[*j - 1], upalf) > 0) {
 			dodash(upalf, s, i, set, j, size);
 		}
 		else {
 			junk = addset(DASH, set, j, size);
 		}
 	}
-	set[MAXARR - 1] = '\0'; //getting a bit paranoid
+	set[*j] = '\0'; //getting a bit paranoid
+}
+
+void swap(int *px, int *py) {
+	int temp;
+	temp = *px;
+	*px = *py;
+	*py = temp;
 }
 
 int makset(char s[], int k, char set[], int size) {
 	int i, j;
 	i = k;
 	j = 0; //1
-	filset(EOS, s, i, set, j++, size);
-	return addset(EOS, set, j, size); //adding the EOS
-}
-
-//Can you see how this will get messy!
-int addset(char c, char set[], int j, int maxsize) {
-	if (j >= maxsize) {
-		return NO;
-	}
-	else {
-		set[j] = c;
-		j = j + 1;
-	}
-	return YES;
+	filset(EOS, s, i, set, &j, size);
+	j++;
+	return addset(EOS, set, &j, size); //adding the EOS
 }
 
 
@@ -511,7 +520,7 @@ void error(char msg[]) {
 	}
  </RATFOR>
 */
-int translit(char argFrom[], char argTo[], char input[], char output[]) {
+int translit(char argFrom[], char argTo[], char input[], char *output) {
 	//translit - map characters
 	//character getc
 	//character arg(MAXARR), c, from(MAXSET), to(MAXSET)
@@ -540,7 +549,7 @@ int translit(char argFrom[], char argTo[], char input[], char output[]) {
 	if (argTo == NULL) {
 		to[0] = EOF;
 	}
-	else if (makset(argTo, 1, to, MAXSET) == NO)
+	else if (makset(argTo, 0, to, MAXSET) == NO)
 		error("TO: too large");
 
 	lastto = length(to);
@@ -555,7 +564,8 @@ int translit(char argFrom[], char argTo[], char input[], char output[]) {
 		if (collap == YES & i >= lastto & lastto > 0) {
 			//#collapse
 			//putc(to[lastto], output);
-			*output++ = to[lastto];
+			*output = to[lastto];
+			output += 1;
 			do {
 				//i = xindex(from, getc(input), allbut, lastto);
 				i = xindex(from, *input++, allbut, lastto);
@@ -563,12 +573,20 @@ int translit(char argFrom[], char argTo[], char input[], char output[]) {
 		}//#end collapse
 		if (*input == EOF) //c
 			break;
-		if (i > 0 & lastto > 0)
+		if (i > 0) {
 			//putc(to[i]);
-			*output++ = to[i];
-		else if (i == 0)
+			*output = to[i];
+			output += 1;
+		}
+		else if (lastto > 0) {
+			*output = to[i];
+			output += 1;
+		}
+		else if (i == 0) {
 			//putc(c);
-			*output++ = *input;
+			*output = *input;
+			output += 1;
+		}
 	}
 	output[MAXARR - 1] = '\0'; //truncate some data
 	return YES;
