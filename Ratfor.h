@@ -423,7 +423,7 @@ void filset(char delim, char s[], int i, char set[], int *j, int size) {
 		else if (s[i] != DASH) {
 			junk = addset(s[i], set, j, size);
 		}
-		else if (*j <= 1 | s[i + 1] == EOS) { //Lterall -
+		else if ( (*j <= 1 )| (s[i + 1] == EOS)) { //Lterall -
 			junk = addset(DASH, set, j, size);
 		}
 		else if (index(s[*j - 1], digits) > 0) {
@@ -527,7 +527,7 @@ int translit(char argFrom[], char argTo[], char input[], char *output) {
 	char from[MAXSET];
 	char to[MAXSET];
 	//integer getarg, length, markset, xindex
-	int length;
+	//int length;
 	//integer allbut, collap, i, lastto
 	int allbut, collap, i, lastto;
 
@@ -553,7 +553,7 @@ int translit(char argFrom[], char argTo[], char input[], char *output) {
 		error("TO: too large");
 
 	lastto = length(to);
-	if (length(from) > lastto | allbut == YES)
+	if ( (length(from) > lastto) | (allbut == YES))
 		collap = YES;
 	else
 		collap = NO;
@@ -561,7 +561,7 @@ int translit(char argFrom[], char argTo[], char input[], char *output) {
 	while (1) {
 		//i = xindex(from, getc(input), allbut, lastto);
 		i = xindex(from, *input++, allbut, lastto);
-		if (collap == YES & i >= lastto & lastto > 0) {
+		if ((collap == YES) & (i >= lastto) & (lastto > 0)) {
 			//#collapse
 			//putc(to[lastto], output);
 			*output = to[lastto];

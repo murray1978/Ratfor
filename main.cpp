@@ -86,9 +86,9 @@ int main(int argc, char* argv[])
 	//}
 
 	//test, uppercase A to lower case a
-	char testString[] = "AAAAAAAAAAAAAAAbbbbbbbbCDA";
-	char from[] = "!A";
-	char to[] = "a";
+	char testString[] = "A123B456C789D0";
+	char from[] = "!AB";
+	char to[] = "-";
 	char output[MAXARRAY];
 
 	translit(from, to, testString, output);
