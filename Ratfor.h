@@ -327,7 +327,7 @@ void expand(FILE *infile, FILE *outFile) {
 void crypt(FILE *inFile, FILE *outFile, char *key) {
 	int c;
 
-	for (int i = 0; GETC(c, inFile) != EOF; i = mod(i, strlen(key) + 1)) {
+	for (int i = 0; GETC(c, inFile) != EOF; i = mod(i, (int)strlen(key) + 1)) {
 		fputc(XOR(c, key[i]), outFile);
 	}
 }
@@ -342,7 +342,7 @@ int index(char c, char *s) {
 		}
 		i++;
 	}
-	return  i - s;
+	return  (int)(i - s);
 }
 
 int xindex(char s[], char c, int allbut, int lastto) {
@@ -537,22 +537,22 @@ int translit(char argFrom[], char argTo[], char input[], char *output) {
 	if (argFrom[0] == NOT) {
 		allbut = YES;
 		if (makset(argFrom, 1, from, MAXSET) == NO) { //"!A"
-			error("From: too large");
+			error("translit, From: too large");
 		}
 	}
 	else {
 		allbut = NO;
 		if (makset(argFrom, 0, from, MAXSET) == NO) //"A"
-			error("From: to large");
+			error("translit, From: to large");
 	}
 
 	if (argTo == NULL) {
 		to[0] = EOF;
 	}
 	else if (makset(argTo, 0, to, MAXSET) == NO)
-		error("TO: too large");
+		error("translit, TO: too large");
 
-	lastto = length(to);
+	lastto = (int)length(to);
 	if ( (length(from) > lastto) | (allbut == YES))
 		collap = YES;
 	else
@@ -560,32 +560,32 @@ int translit(char argFrom[], char argTo[], char input[], char *output) {
 
 	while (1) {
 		//i = xindex(from, getc(input), allbut, lastto);
-		i = xindex(from, *input++, allbut, lastto);
+		i = xindex(from, *input++, allbut, lastto); //input++
 		if ((collap == YES) & (i >= lastto) & (lastto > 0)) {
 			//#collapse
 			//putc(to[lastto], output);
-			*output = to[lastto];
-			output += 1;
+			*output = to[lastto-1];
+			output++;
 			do {
 				//i = xindex(from, getc(input), allbut, lastto);
-				i = xindex(from, *input++, allbut, lastto);
+				i = xindex(from, *input++, allbut, lastto); //input++
 			} while (i < lastto);
 		}//#end collapse
-		if (*input == EOF) //c
+		if ((*input - 1) == EOF) //c
 			break;
 		if (i > 0) {
 			//putc(to[i]);
-			*output = to[i];
-			output += 1;
+			output = &to[i];
+			output++;
 		}
 		else if (lastto > 0) {
-			*output = to[i];
-			output += 1;
+			output = &to[i];
+			output++;
 		}
 		else if (i == 0) {
 			//putc(c);
 			*output = *input;
-			output += 1;
+			output++;
 		}
 	}
 	output[MAXARR - 1] = '\0'; //truncate some data
